@@ -1,0 +1,157 @@
+---
+title: "report"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+  output: pdf_document
+  fontsize: 12pt
+  urlcolor: "blue"
+  geometry: margin=2in
+author: "Student ID: 11484265"
+always_allow_html: true
+---
+
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo=FALSE, cache=FALSE, 
+                      eval=TRUE, message=FALSE, 
+                      warning=FALSE, fig.align='center',
+                      fig.dim=c(6,3))
+                      
+
+library(rmarkdown)
+library(tinytex)
+library(checkpoint)
+library(knitr)
+library(kableExtra)
+library(tidyverse)
+library(haven)
+library(sjPlot)
+library(lme4)
+
+# 
+# # source code from the files
+# source(file="clean.R")
+# source(file="model.R")
+```
+
+\newpage
+
+<!-- ```{=latex} -->
+<!-- \setcounter{tocdepth}{3} -->
+<!-- \tableofcontents -->
+<!-- ``` -->
+
+\pagenumbering{arabic}
+
+
+```{r clean, include=FALSE}
+data <- read_dta("data/A-1-NPD-dataset2.dta")
+# create copy of dataset to clean
+dataw <- data
+colconv <- c("school", "cohort", "pupil",
+             "year2004", "year2005", "year2006",
+             "time", "cons") 
+dataw[,colconv] <- lapply(dataw[,colconv], as_factor) 
+```
+
+
+# Question 1: Descriptive Analysis (10%)
+
+```{r Q1, include=FALSE}
+nsch <- (length(unique(dataw$school)))
+npup <- (length(unique(dataw$pupil)))
+navgpup <- as.integer(npup/nsch)
+
+```
+
+
+Describe the dataset:
+-How many pupils and schools are there in the dataset?
+
+There are `r nsch` schools and `r npup` pupils.
+
+
+-What is the average number of pupils per school? 
+`r navgpup`
+
+-Create histograms for “gcsescore” and “ks2score”. 
+```{r histo_gcse}
+ggplot(dataw, aes(x=gcsescore))+
+  geom_histogram(binwidth = 0.1, fill = "lightblue", color = "black") +
+  labs(title = "Histogram of GCSE Scores", x = "GCSE Score", y = "Frequency")
+
+
+```
+
+```{r histo_ks2}
+
+ggplot(dataw, aes(x = ks2score)) +
+  geom_histogram(binwidth = 1, fill = "lightblue", color = "black") +
+  labs(title = "Histogram of KS2 Scores", x = "KS2 Score", y = "Frequency")
+```
+
+
+```{r scatter_scores}
+ggplot(dataw, aes(y = gcsescore, x = ks2score))+
+  geom_point(color = "blue") +
+  labs(title = "Scatter Plot of GCSE Scores vs. KS2 Scores",
+       x = "KS2 Score",
+       y = "GCSE Score") +
+  theme_minimal()
+```
+
+While there are pupils who score low on the GCSE on a wide range of KS2 scores, the general trend is that higher GCSE scorers generally have higher KS2. Those who scored extremely high on the KS2 score may not always have the highest GCSE, but are all above average.
+
+# Question 2: Model Estimation (30%)
+
+Estimate the following multilevel models and summarise the results in a table:
+
+-Model 0 (m0): An empty model with “gcsescore” as the dependent variable and a random intercept at the school level.
+
+```{r model0}
+m0 <- lmer(gcsescore ~ (1 | school), data=dataw, REML=F)
+```
+
+
+-Model 1 (m1): m0 + a fixed effect for “ks2score”. 
+
+```{r model1}
+m1 <- lmer(gcsescore ~ ks2score + (1 | school), data=dataw, REML=F)
+```
+
+
+-Model 2 (m2): m1 + “ks2score” squared to capture non-linear effects. 
+
+```{r model2}
+dataw$ks2_sq <- (dataw$ks2score)^2
+m2 <- lmer(gcsescore ~ ks2score + ks2_sq + (1 | school), data=dataw, REML=F)
+```
+
+
+-Model 3 (m3): m2 + a random slope for “ks2score” to allow the relationship between “ks2score” and “gcsescore” to vary by school.
+
+```{r model3}
+m3 <- lmer(gcsescore ~ ks2score + ks2_sq + (ks2score + ks2_sq| school), data=dataw, REML=F)
+
+```
+<!--plot_model(m1, ,type="pred", -->
+<!--             terms=c("ks2score","school"), -->
+<!--             pred.type="re", ci.lvl = NA) -->
+
+
+Compare how the inclusion of “ks2score” and its squared term “ks2score2” affects the model fit and the interpretation of the relationship between “ks2score” and “gcsescore”. Specifically, analyse how the introduction of non-linearity in Model 2 improves the model fit over Model 1. 
+
+including ks2: variance in schools went down by 0.05; residual went down by half.
+including ks2 sq: var and res did not change.
+relationship between “ks2score” and “gcsescore”: positive... ~.72
+m2 over m1: ???
+
+
+
+Additionally, evaluate the significance and impact of allowing the slope of “ks2score” to vary by school in Model 3. Discuss how these modifications influence the explanation of variance between schools and within schools and how they reflect the underlying educational processes.
+
+not that impactful...????? wtf
+
