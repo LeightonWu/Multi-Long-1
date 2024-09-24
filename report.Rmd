@@ -134,24 +134,177 @@ m2 <- lmer(gcsescore ~ ks2score + ks2_sq + (1 | school), data=dataw, REML=F)
 -Model 3 (m3): m2 + a random slope for “ks2score” to allow the relationship between “ks2score” and “gcsescore” to vary by school.
 
 ```{r model3}
-m3 <- lmer(gcsescore ~ ks2score + ks2_sq + (ks2score + ks2_sq| school), data=dataw, REML=F)
+m3 <- lmer(gcsescore ~ ks2score + ks2_sq + (ks2score | school), data=dataw, REML=F)
+
+summary(m1)
+summary(m2)
+summary(m3)
+
 
 ```
-<!--plot_model(m1, ,type="pred", -->
-<!--             terms=c("ks2score","school"), -->
-<!--             pred.type="re", ci.lvl = NA) -->
+
+plot
+
+```{r plot1}
+plot_model(m3, ,type="pred",
+            terms=c("ks2score","school"),
+            pred.type="re", ci.lvl = NA)
+```
 
 
-Compare how the inclusion of “ks2score” and its squared term “ks2score2” affects the model fit and the interpretation of the relationship between “ks2score” and “gcsescore”. Specifically, analyse how the introduction of non-linearity in Model 2 improves the model fit over Model 1. 
+## Compare how the inclusion of “ks2score” and its squared term “ks2score2” affects the model fit and the interpretation of the relationship between “ks2score” and “gcsescore”. Specifically, analyse how the introduction of non-linearity in Model 2 improves the model fit over Model 1. 
 
 including ks2: variance in schools went down by 0.05; residual went down by half.
 including ks2 sq: var and res did not change.
 relationship between “ks2score” and “gcsescore”: positive... ~.72
-m2 over m1: ???
+m2 over m1: The lower AIC and BIC values and higher log-likelihood and reduced deviance for m2 indicate a better fit. This suggests that the addition of the squared term provides a significant improvement in the model.
+
+The relationship between ks2score and gcsescore is assumed to be linear. The coefficient for ks2score is approximately 0.72, indicating that for every one-unit increase in ks2score, gcsescore increases by about 0.72, holding the school effect constant.
+
+With the introduction of ks2_sq, the relationship becomes quadratic. The coefficient for ks2_sq is positive (0.028), which suggests a U-shaped relationship. This indicates that as ks2score increases, the effect on gcsescore initially may diminish before it begins to rise again.
+
+The coefficient for ks2score remains similar (approximately 0.72), but its interpretation changes: the positive ks2_sq coefficient suggests that the effect of ks2score on gcsescore is not constant across the range of ks2score` values.
+
+
+while higher scores generally lead to better outcomes, the benefit may be more pronounced for students with moderate scores rather than those at the extremes.
 
 
 
-Additionally, evaluate the significance and impact of allowing the slope of “ks2score” to vary by school in Model 3. Discuss how these modifications influence the explanation of variance between schools and within schools and how they reflect the underlying educational processes.
 
-not that impactful...????? wtf
+## evaluate the significance and impact of allowing the slope of “ks2score” to vary by school in Model 3. Discuss how these modifications influence the explanation of variance between schools and within schools and how they reflect the underlying educational processes.
+
+The variance for the random slope of ks2score is 0.002482, indicating some variability in how the effect of ks2score on gcsescore differs across schools. This suggests that while there is a general trend (captured by the fixed effect of ks2score), the strength of that trend is not uniform.
+
+The correlation between the random intercept and the random slope for ks2score is 0.34. This positive correlation indicates that schools with higher intercepts (better baseline performance) tend to also have steeper slopes, suggesting that schools that generally perform well also see greater gains from increases in ks2score.
+
+Between-School Variance:
+By allowing the slope to vary, model m3 captures differences in how the effectiveness of ks2score varies across schools. This means that some schools may have students whose gcsescore improves significantly with increases in ks2score, while others may not see as much improvement. The introduction of random slopes thus helps explain why some schools are more effective at translating prior scores into future performance.
+
+Within-School Variance:
+
+The model still captures within-school variance through the residual term. However, by accommodating differences in the slopes, model m3 can provide more precise estimates of expected outcomes for students within schools. This allows for a better understanding of individual student performance, as it accounts for the unique context of each school.
+
+
+Contextual Factors: The variation in slopes reflects contextual influences on student performance, such as teaching quality and resources. For instance, schools with strong tutoring programs may utilize ks2score more effectively than those without.
+
+Educational Interventions: Recognizing that the relationship between ks2score and gcsescore varies by school can guide targeted policies. Schools can adopt successful practices from higher-performing peers to enhance student outcomes.
+
+Reflection of Underlying Educational Processes
+Individual Differences: The model emphasizes that educational outcomes are shaped not just by individual scores but also by the school context, highlighting the need for a holistic approach that considers both student and school characteristics.
+
+# Question 3: Interpretation and Model Comparison (40%)
+
+-Q3a: Calculate the Intraclass Correlation Coefficient (ICC) for m0 and interpret it. Provide both interpretations (variance explained by schools and the average correlation between pupils within the same school).
+```{r}
+var_comp0 <- VarCorr(m0)
+# random eff variance
+school_var0 <- as.numeric(var_comp0[[1]][1])
+# residual variance
+res_var0 <- attr(var_comp0, "sc")^2
+
+icc0 <- school_var0/(school_var0 + res_var0)
+```
+
+
+-Q3b: What proportion of variation is explained by m1 compared to m0? Calculate and interpret R2.
+
+m1 explains about ~0.5 more of the variation. This suggests that prior achievement (as measured by ks2score) plays a significant role in predicting students' future exam scores.  This strong relationship suggests that interventions aimed at improving ks2score could lead to meaningful improvements in gcsescore.
+
+```{r}
+var_comp1 <- VarCorr(m1)
+# random eff variance
+school_var1 <- as.numeric(var_comp1[[1]][1])
+# residual variance
+res_var1 <- attr(var_comp1, "sc")^2
+
+r2 <- 1 - (res_var1 + school_var1) / (res_var0 + school_var0)
+```
+
+
+## Q3c: Conduct a Likelihood Ratio Test (LRT) comparing m1 and m0. What is the score, degrees of freedom, and which model does the test suggest choosing? Perform a similar test for m2 versus m1 and explain the reasoning behind the model choice.
+
+The degrees of freedom for the comparison is 1. This indicates that the more complex model (m1) has one additional parameter compared to the simpler model (m0). The Chi-squared statistic is 19666. This value reflects the improvement in model fit when moving from the simpler model (m0) to the more complex model (m1). The p-value (Pr(>Chisq)) is < 2.2e-16, which is extremely low. This suggests that the additional parameter(s) in model m1 provide a significantly better fit to the data than model m0.
+
+```{r}
+anova(m1, m0)
+```
+ 
+
+
+## Q3d: Interpret the significance and meaning of the “ks2score2” coefficient in m2. How does this inform your choice between m2 and m1?
+The very low p-value (p < 2.2e-16) from the ANOVA results indicates that the ks2_sq term is highly significant. This means that the quadratic relationship contributes significantly to explaining the variation in gcsescore beyond what is captured by the linear term ks2score alone. The coefficient for ks2_sq represents the curvature in the relationship between ks2score and gcsescore. If the coefficient is positive, it indicates a U-shaped relationship, suggesting that as ks2score increases, the effect on gcsescore diminishes at first and then increases again. Conversely, a negative coefficient indicates an inverted U-shape, meaning that after a certain point, higher ks2score values lead to diminishing returns on gcsescore.
+
+ The ANOVA results show that model m2 has a significantly better fit than model m1, as indicated by the Chi-squared statistic (71.086) and the significant p-value. This suggests that the additional complexity of model m2, which includes the quadratic term, captures important relationships in the data that model m1 does not.
+ 
+  The findings suggest that educational interventions or policies should consider the complexity of how prior scores relate to future performance. Depending on the sign of the ks2_sq coefficient, strategies might differ for students with low, medium, or high ks2score.
+```{r 3d}
+anova(m1, m2)
+```
+
+
+## Q3e: Discuss the variation in the slope of “ks2score” across schools in m3. Perform an LRT comparing m3 and m2. Is the difference significant? Plot the random coefficients and interpret the results.
+
+The difference is significant. 
+
+```{r 3e}
+anova(m2, m3)
+plot_model(m3, type = "re", show.values = F)
+```
+
+
+# Question 4: Diagnostic Checks and Residual Analysis (20%)
+
+## 4a: Create Q-Q plots for the random effects in m3 and interpret them. Are the random effects normally distributed?
+
+They look normally distributed as they follow the qq line. 
+
+```{r 4a}
+random_eff3 <- ranef(m3)
+
+qqnorm(random_effects$school[, "(Intercept)"], main = "Q-Q Plot for Random Intercepts")
+qqline(random_effects$school[, "(Intercept)"], col = "red")
+ 
+qqnorm(random_effects$school[, "ks2score"], main = "Q-Q Plot for Random Slopes (ks2score)")
+qqline(random_effects$school[, "ks2score"], col = "red")
+
+```
+
+
+## 4b: Plot residuals against fitted values for m3. What does the plot suggest about the model fit?
+
+Fan-shaped pattern: The plot has a triangular or wedge-shaped structure, where the spread of residuals increases as the fitted values become larger. This indicates potential heteroscedasticity, meaning that the variance of residuals is not constant across the range of fitted values. It suggests that the model’s errors are larger for certain levels of the fitted values.
+
+Outliers: There are clusters of points that deviate from the general pattern, particularly on the right side of the plot. These may indicate outliers or influential data points that could be affecting the model.
+
+Fitted vs. Residuals Relation: Residuals should ideally be randomly distributed around 0, but the spread on one side (both upper and lower boundaries) suggests some systematic bias or structure in the data that is not well captured by the model.
+
+Non-linearity: The plot shows a nonlinear boundary, especially with the extreme lower-left and upper-right clusters. This could suggest that the linearity assumption may be violated, indicating that a more complex model might better capture the underlying relationships.
+
+```{r 4b, cache=T}
+model_data <- data.frame(
+     fit = fitted(m3),
+     residuals = residuals(m3)
+ )
+
+ggplot(model_data, aes(x = fit, y = residuals)) +
+    geom_point(alpha = 0.5) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+    theme_minimal()
+```
+
+
+
+
+
+## 4c: Plot level 1 residuals against “ks2score”. What does this plot reveal about the model, particularly regarding linearity and homoscedasticity?
+
+The blue line indicates a non-linear relationship between the residuals and the predictor (KS2 score). The curve is not flat and does not follow the red line; it initially fluctuates around zero, then shows a sharp downward trend as the KS2 score increases.
+
+This suggests that the model is not capturing the non-linear relationship between the KS2 score and the outcome variable well. A linear model might not be appropriate for this data, and a transformation of the predictor or a more flexible model (e.g., polynomial terms, splines) might improve the fit.
+
+This funnel-shaped pattern, where residuals become more negative for larger KS2 scores, suggests heteroscedasticity. The model errors are not constant but vary depending on the level of the KS2 score.
+
+```{r 4c}
+plot_model(m3, type = "resid")
+```
 
