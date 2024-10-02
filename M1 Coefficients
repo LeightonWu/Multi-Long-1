@@ -1,0 +1,29 @@
+
+\begin{table}[!htbp] \centering 
+  \caption{Model 1 Coefficients} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}}lc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{1}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-2} 
+\\[-1.8ex] & gcsescore \\ 
+\hline \\[-1.8ex] 
+ ks2score & 0.718$^{***}$ \\ 
+  & (0.004)$^{***}$ \\ 
+  & t = 167.222$^{***}$ \\ 
+  & \\ 
+ Constant & $-$0.001 \\ 
+  & (0.023) \\ 
+  & t = $-$0.023 \\ 
+  & \\ 
+\hline \\[-1.8ex] 
+Observations & 29,506 \\ 
+Log Likelihood & $-$30,836.570 \\ 
+Akaike Inf. Crit. & 61,681.140 \\ 
+Bayesian Inf. Crit. & 61,714.320 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\end{tabular} 
+\end{table} 
