@@ -50,9 +50,12 @@ data <- read_dta("data/A-1-NPD-dataset2.dta")
 
 # create copy of dataset to clean
 dataw <- data
+
+# Convert to factor
 colconv <- c("school", "cohort", "pupil",
              "year2004", "year2005", "year2006",
-             "time", "cons") 
+             "time", "cons")
+
 dataw[,colconv] <- lapply(dataw[,colconv], as_factor) 
 
 ```
@@ -329,7 +332,7 @@ kable(anv23, booktabs = T) %>%
 
 ```
 
-The difference between model 2 and 3 is significant. Model 3 fits the data better than model 2 given the significant chi statistic (`r chi23`). Allowing the slopes for KS2 scores to vary across schools enhances the model's predictive ability for GCSE scores, indicating that the relationship between KS2 and GCSE scores differs by school. However, as shown in Figure 3 and 4, the slopes exhibit minimal variation across schools.
+Model 3 fits the data better than model 2, as indicated by the significant chi statistic (`r chi23`). Allowing the slopes for KS2 scores to vary enhances the model's predictive ability for GCSE scores, indicating that the relationship between KS2 and GCSE scores differs by school. However, as shown in Figure 3 and 4, the slopes exhibit minimal variation across schools.
 
 
 ```{r m3_slopes, fig.cap='Model 3 Predicted Values'}
@@ -351,8 +354,7 @@ plot_model(m3, type = "re", show.values = F, , colors = 'Dark2')
 
 ```
 
-The variance in the slopes of ks2score across schools in model 3 is `r var_ks2_m3`. 
-The influence of KS2 scores on GCSE outcomes varies slightly between schools, indicating that while prior achievement predicts future performance differently across schools, these differences are not substantial. The random slopes for KS2 scores show minimal variation, with most values concentrated near zero, suggesting a uniform effect of KS2 scores on GCSE results. In contrast, the random intercepts exhibit greater variability, indicating significant differences in baseline GCSE scores among schools, even after accounting for KS2 effects.
+The variance in the slopes of ks2score across schools in model 3 is `r var_ks2_m3`. The influence of KS2 scores on GCSE outcomes varies slightly between schools, indicating that while prior achievement predicts future performance differently across schools, these differences are not substantial. The random slopes for KS2 scores show minimal variation, with most values concentrated near zero, suggesting a uniform effect of KS2 scores on GCSE results. In contrast, the random intercepts exhibit greater variability, indicating significant differences in baseline GCSE scores among schools, even after accounting for KS2 effects.
 
 \newpage
 
@@ -377,6 +379,8 @@ qqline(random_eff3[, "ks2score"], col = "red")
 
 QQ plots for the random effects look normally distributed as they follow the theoretical distribution with no notable curvature or outliers.
 
+\newpage
+
 ## Residuals against Fitted Values for Model 3 (Q4b)
 
 ```{r m3_fitted_res, fig.cap='Model 3 fitted values residual plot.'}
@@ -394,7 +398,7 @@ ggplot(model_data, aes(x = fit, y = residuals)) +
 
 ```
 
-The plot exhibits a fan-shaped pattern, where the variance of residuals increases with larger fitted values. indicating potential heteroscedasticity. Clusters of points on the right side indicate possible outliers or influential data points that may be impacting the model. Additionally, the residuals do not appear randomly distributed around zero, showing systematic bias and suggesting that the linearity assumption may be violated, as indicated by the nonlinear boundary in the extreme clusters.
+Figure 5 exhibits a fan-shaped pattern, where the variance of residuals increases with larger fitted values, indicating potential heteroscedasticity. Clusters on the right side indicate possible outliers that may be impacting the model. Since the residuals do not appear randomly distributed around zero, there may be a systematic bias or the assumption of linearity may be incorrect.
 
 
 ## Residuals against KS2 Scores for Model 3 (Q4c)
@@ -406,7 +410,7 @@ plot_model(m3, type = "resid")
 
 ```
 
-The blue line illustrates a non-linear relationship between the residuals and the predictor (KS2 score), initially fluctuating around zero before sharply declining as the KS2 score increases. This indicates that the model fails to adequately capture the non-linear relationship, suggesting that the linear nature of the term may be inappropriate. Additionally, residuals become more negative at higher KS2 scores, indicating heteroscedasticity, and that model errors vary with the level of the KS2 score.
+The blue line in figure 6 illustrates a non-linear relationship between the residuals and KS2 score, initially fluctuating around zero before sharply declining as the KS2 score increases. This indicates there may be a non-linear relationship that model 3 fails to capture. Additionally, residuals become more negative at higher KS2 scores, highlighting varying model errors as with the level of the KS2 score increases.
 
 \newpage
 
